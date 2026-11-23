@@ -101,6 +101,54 @@ La comparación normaliza mayúsculas/minúsculas y quita espacios sobrantes. So
 
 Resultado manual: `476000`. Resultado del programa para `ventasPorCiudad(ventas, "  mEdElLíN ")`: `476000`. Coinciden.
 
+## Indicadores con métodos de arreglo y agrupaciones
+
+Para documentar cada función, respondo las preguntas de la sesión:
+
+- **`totalVendidoM(ventas)`**
+  - ¿Qué recorro? El arreglo `ventas` con `reduce`.
+  - ¿Qué filtro? Solo ventas con `cantidad > 0`.
+  - ¿Qué transformo? Cada venta válida a su importe mediante `valorVenta`.
+  - ¿Qué acumulo? Los importes en un total iniciado en `0`.
+  - ¿Cómo agrupo? No agrupa; produce un único total.
+- **`unidadesVendidasM(ventas)`**
+  - ¿Qué recorro? El arreglo `ventas` con `reduce`.
+  - ¿Qué filtro? Solo ventas con `cantidad > 0`.
+  - ¿Qué transformo? No transforma registros; toma el campo `cantidad`.
+  - ¿Qué acumulo? Unidades en un contador iniciado en `0`.
+  - ¿Cómo agrupo? No agrupa; produce un único total de unidades.
+- **`ventasPorCiudadM(ventas, ciudad)`**
+  - ¿Qué recorro? El arreglo `ventas`, primero con `filter` y luego con `reduce`.
+  - ¿Qué filtro? Ventas válidas de la ciudad solicitada, comparando nombres sin espacios sobrantes y sin distinguir mayúsculas.
+  - ¿Qué transformo? La ciudad solicitada para compararla en minúsculas; convierto las ventas coincidentes a importes con `valorVenta`.
+  - ¿Qué acumulo? El importe de las ventas coincidentes, iniciando en `0`.
+  - ¿Cómo agrupo? No crea varios grupos; selecciona una ciudad y devuelve su total.
+- **`totalPorCiudad(ventas)`**
+  - ¿Qué recorro? El arreglo `ventas` con `reduce`.
+  - ¿Qué filtro? Solo ventas con `cantidad > 0`.
+  - ¿Qué transformo? Normalizo la ciudad con `trim().toLowerCase()` y obtengo el importe con `valorVenta`.
+  - ¿Qué acumulo? Importes vendidos en un objeto acumulador.
+  - ¿Cómo agrupo? La clave es el nombre normalizado de la ciudad; por ejemplo, `"Bogotá"` y `"Bogotá "` se suman bajo `bogotá`.
+- **`unidadesPorProducto(ventas)`**
+  - ¿Qué recorro? El arreglo `ventas` con `reduce`.
+  - ¿Qué filtro? Solo ventas con `cantidad > 0`.
+  - ¿Qué transformo? Tomo el producto como clave y la cantidad como unidades a sumar.
+  - ¿Qué acumulo? Cantidades por producto en un objeto iniciado en `{}`.
+  - ¿Cómo agrupo? Por el nombre de producto, conservando el texto tal como aparece en los datos.
+- **`topProductosPorValor(ventas, k)`**
+  - ¿Qué recorro? El arreglo `ventas` con `reduce`; después recorro los pares producto-total.
+  - ¿Qué filtro? Solo ventas con `cantidad > 0`; si `k` no es entero positivo, no se selecciona ningún producto.
+  - ¿Qué transformo? Cada venta válida a su importe; después ordeno los pares de productos por valor descendente y extraigo sus nombres.
+  - ¿Qué acumulo? El importe generado por cada producto en un objeto iniciado en `{}`.
+  - ¿Cómo agrupo? Por nombre de producto antes de ordenar y tomar los primeros `k`. `Object.entries` crea un arreglo nuevo para ordenar, sin modificar `ventas`.
+- **`verificar.js`**
+  - ¿Qué recorro? Calcula los tres pares de indicadores sobre el mismo arreglo importado desde `datos.js`.
+  - ¿Qué filtro y transformo? No filtra ni transforma los datos directamente; invoca cada versión con ciclo y con métodos usando los mismos argumentos.
+  - ¿Qué acumulo? No acumula ventas; compara cada par de resultados.
+  - ¿Cómo agrupo? Presenta una línea por indicador, con `OK` si ambos resultados coinciden o `DIFERENTE` si no.
+
+La verificación se ejecuta con `node src/verificar.js`. Para la muestra actual los tres pares deben coincidir: total vendido, unidades vendidas y total vendido en Medellín.
+
 ## Casos borde detectados
 
 - **Ciudad con mayúsculas inconsistentes:** en el registro `id: 5` aparece `medellín`, mientras que en otros registros aparece `Medellín`. **Decisión:** normalizar espacios y mayúsculas/minúsculas para el análisis y unificar ambas variantes como `medellin`, sin modificar el dato original.
