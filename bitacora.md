@@ -101,6 +101,34 @@ La comparación normaliza mayúsculas/minúsculas y quita espacios sobrantes. So
 
 Resultado manual: `476000`. Resultado del programa para `ventasPorCiudad(ventas, "  mEdElLíN ")`: `476000`. Coinciden.
 
+## Ventas por fecha y reporte
+
+`ventasDelDia(ventas, fecha)` recorre/filtra los registros por fecha exacta (`AAAA-MM-DD`) y devuelve solo las ventas válidas (`cantidad > 0`). Así, un día sin ventas válidas produce un arreglo vacío; el reporte calcula para cada día la cantidad de registros válidos, unidades y total vendido. En la muestra, el `2026-09-01` tiene 2 ventas válidas, 3 unidades y un total de `$ 110.000`; el `2026-09-07` no tiene ventas y muestra 0 registros, 0 unidades y `$ 0`.
+
+El reporte presenta resumen general, totales por ciudad, unidades por producto, top 3 por valor y los dos resúmenes diarios. Los importes se muestran con `toLocaleString("es-CO")`. Para mostrar nombres de ciudad legibles sin duplicar grupos, el total se calcula con claves normalizadas y se presenta el primer nombre original recortado asociado a cada clave.
+
+## Errores reportados: reproducción y corrección
+
+### 1. Nombres de funciones incorrectos en el reporte
+
+- **Síntoma:** el reporte heredado usa identificadores como `totalUnidades`, `ventaMayorValor`, `ventasDeCiudad` y `promedioPorVenta`; no corresponden a nombres exportados por `analitica.js` y fallan al importar o invocar esos indicadores.
+- **Entrada que lo produce:** ejecutar un reporte que solicita esos nombres de la API analítica actual.
+- **Hipótesis:** el reporte quedó con nombres de una versión anterior, mientras que los indicadores fueron renombrados.
+- **Prueba realizada:** se inspeccionaron los exports del módulo; `unidadesVendidas`, `ventaMayor`, `ventasPorCiudad` y `ticketPromedio` sí existen. La prueba de regresión verificó también que no existen exports `totalUnidades`, `ventaMayorValor`, `ventasDeCiudad` ni `promedioPorVenta`. `node src/reporte.js` termina correctamente usando los nombres vigentes.
+- **Causa:** desacuerdo entre los nombres importados y los nombres públicos exportados.
+- **Corrección:** importar y llamar los nombres que exporta `analitica.js`; el reporte actual ejecuta y presenta valores, no `undefined`.
+
+### 2. Ciudades duplicadas por formato inconsistente
+
+- **Síntoma:** una misma ciudad puede aparecer como grupos separados, por ejemplo `"Bogotá"` y `" Bogotá "`.
+- **Entrada que lo produce:** sumar registros válidos de una misma ciudad escritos con espacios iniciales/finales o diferencias entre mayúsculas y minúsculas.
+- **Hipótesis:** la clave del agrupamiento usa el texto original sin normalizar.
+- **Prueba realizada:** se llamó `totalPorCiudad` con los datos actuales más una copia válida de la venta de Bogotá cuyo campo ciudad era `" Bogotá "`. El resultado contiene una sola clave `bogotá` y suma `$ 182.000` entre las ventas originales de Bogotá y la copia agregada; no crea una clave aparte por los espacios. El reporte muestra una sola fila de Bogotá y una sola de Medellín, pese a la variante `medellín` en los datos.
+- **Causa:** usar valores de ciudad sin recortar ni normalizar como claves de agrupación.
+- **Corrección:** `totalPorCiudad` agrupa mediante `trim().toLowerCase()` y el reporte usa esas claves normalizadas para presentar una fila por ciudad.
+
+La corrida final del reporte también se revisó para confirmar que no contiene `NaN`, `undefined` ni grupos duplicados de ciudad.
+
 ## Indicadores con métodos de arreglo y agrupaciones
 
 Para documentar cada función, respondo las preguntas de la sesión:
